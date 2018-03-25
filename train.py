@@ -4,9 +4,11 @@ import os
 from sys import stdin
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--input-dir', default="stdin", dest='train_file', help="Way to text file")
+parser.add_argument('--input-dir', default="stdin", dest='train_file',
+                    help="Way to text file")
 parser.add_argument('--lc', action='store_true', help="Check for lowercase")
-parser.add_argument('--model', type=str, default='model.pickle', help="Way to file with model for generation")
+parser.add_argument('--model', type=str, default='model.pickle',
+                    help="Way to file with model for generation")
 
 args = parser.parse_args()
 
@@ -34,7 +36,7 @@ def prepare(model, line):
     return model
 
 
-#main functions
+# main functions
 def create_model_if_stdin(args):
     model = {}
     for line in stdin:
