@@ -9,12 +9,11 @@ parser.add_argument('--seed', type=str, default='', help="First word")
 parser.add_argument('--length', type=int, help="Number of words in generated string")
 parser.add_argument('--output', default='stdout', type=str, help="File where result will be saved")
 
-args, _ = parser.parse_known_args()
+args = parser.parse_args()
 
 # open file
 with open(args.model, 'rb') as f:
     _model = pickle.load(f)
-    print(_model)
 
 def start_word(args):
     if args.seed == '':
