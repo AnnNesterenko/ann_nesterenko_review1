@@ -12,56 +12,66 @@ parser.add_argument('--length', type=int,
 parser.add_argument('--output', default='stdout', type=str,
                     help="File where result will be saved")
 
-args, _ = parser.parse_known_args()
-
-# open file
-with open(args.model, 'rb') as f:
-    _model = pickle.load(f)
+args = parser.parse_args()
 
 
-def start_word(args):
-    if args.seed == '':
-        return (random.choice(list(_model.keys())))
-    elif args.seed not in _model.keys():
-        print("Ой, такого слова нет :(")
-        print("Вот вам предложение с другим начальным словом:")
-        return (random.choice(list(_model.keys())))
-    else:
-        return(args.seed)
+class Generating(object):
+    def __init__(self, seed, model, output):
+        self.seed = seed
+        self.model = model
+        self.output = output
+        self.statistics = {}
+        self.generated_sentence = ''
+
+    def get_file_for_generation(self):
+        with open(self.model, 'rb') as f:
+            self.statistics = pickle.load(f)
+
+    def start_word(self):
+        if self.seed == '':
+            return random.choice(list(self.statistics.keys()))
+        elif args.seed not in self.statistics.keys():
+            print("Ой, такого слова нет :(")
+            print("Вот вам предложение с другим начальным словом:")
+            return random.choice(list(self.statistics.keys()))
+        else:
+            return self.seed
+
+    def weighted_random_next(self, word):
+        t = 0
+        for i in self.statistics[word].values():
+            t += i
+        random_int = random.randint(0, t)
+        index = t
+        list_of_keys = self.statistics[word].keys()
+        for i in self.statistics[word].keys():
+            index -= self.statistics[word][i]
+            if index <= random_int:
+                return i
+
+    def generate_sentence(self):
+        current_word = self.start_word()
+        self.generated_sentence = [current_word]
+        i = 1
+        while i < args.length and current_word in self.statistics.keys():
+            next_word = self.weighted_random_next(current_word)
+            self.generated_sentence.append(next_word)
+            current_word = next_word
+            i += 1
+        if i < args.length:
+            print("Не получилось построить слово заданной длины:(")
+            self.generated_sentence[0] = self.generated_sentence[0].capitalize()
+        return
+
+    def give_back_generated_sentence(self):
+        if self.output == 'stdout':
+            print(self.generated_sentence)
+        else:
+            with open(self.output, 'w') as file:
+                file.write(self.generated_sentence)
 
 
-def weighted_random_next(word):
-    l = 0
-    for i in _model[word].values():
-        l += i
-    random_int = random.randint(0, l)
-    index = l
-    list_of_keys = _model[word].keys()
-    for i in _model[word].keys():
-        index -= _model[word][i]
-        if index <= random_int:
-            return i
-
-
-def generate_sentence(args):
-    current_word = start_word(args)
-    sentence = [current_word]
-    i = 1
-    while i < args.length and current_word in _model.keys():
-        next_word = weighted_random_next(current_word)
-        sentence.append(next_word)
-        current_word = next_word
-        i += 1
-    if i < args.length:
-        print("Не получилось построить слово заданной длины:(")
-    sentence[0] = sentence[0].capitalize()
-    return sentence
-
-
-sentence = ' '.join(generate_sentence(args))
-sentence += '.'
-if args.output == 'stdout':
-    print(sentence)
-else:
-    with open(args.output, 'w') as file:
-        file.write(sentence)
+if __name__ == "__main__":
+    generating_sentence = Generating(args.seed, args.model, args.output)
+    generating_sentence.generate_sentence()
+    generating_sentence.give_back_generated_sentence()
