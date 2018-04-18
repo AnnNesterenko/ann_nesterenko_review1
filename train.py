@@ -2,6 +2,7 @@ import argparse
 import pickle
 import os
 from sys import stdin
+from collections import defaultdict
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--input-dir', default="stdin", dest='train_file',
@@ -33,13 +34,9 @@ class Training(object):
     @staticmethod
     def prepare(self, model, line):
         for i in range(len(line) - 1):
-            if line[i] in model.keys() and line[i + 1] in model[line[i]].keys():
-                model[line[i]][line[i + 1]] += 1
-            elif line[i] in model.keys() and line[i + 1] not in model[line[i]].keys():
-                model[line[i]][line[i + 1]] = 1
-            else:
-                model[line[i]] = {}
-                model[line[i]][line[i + 1]] = 1
+            if model[line[i]] not in model.keys():
+                model[line[i]] = lambda: defaultdict(int)
+            model[line[i]][line[i + 1]] += 1
         return model
 
     def make_statistics_model_if_stdin(self):
@@ -64,6 +61,8 @@ class Training(object):
             self.make_statistics_model_if_file()
 
     def create_file_with_statistics_model(self):
+        for i in self.statistics.keys():
+            self.statistics[i] = dict(self.statistics[i])
         with open(self.model, 'wb') as file:
             pickle.dump(self.statistics, file)
 

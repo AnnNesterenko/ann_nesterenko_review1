@@ -38,16 +38,7 @@ class Generating(object):
             return self.seed
 
     def weighted_random_next(self, word):
-        t = 0
-        for i in self.statistics[word].values():
-            t += i
-        random_int = random.randint(0, t)
-        index = t
-        list_of_keys = self.statistics[word].keys()
-        for i in self.statistics[word].keys():
-            index -= self.statistics[word][i]
-            if index <= random_int:
-                return i
+        return random.choices(self.statistics[word].keys(), self.statistics[word].values(), k=1)
 
     def generate_sentence(self):
         current_word = self.start_word()
